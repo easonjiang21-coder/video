@@ -1,1 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Drift // AI Video</title>
+  <style>
+    :root {
+      --bg: #071119;
+      --bg-2: #10231d;
+      --panel: #111d23;
+      --panel-soft: #172b29;
+      --text: #dffcf7;
+      --text-soft: #9abcbd;
+      --text-muted: #87a4a2;
+      --line: rgba(255,255,255,.11);
+      --accent: #baff7d;
+      --accent-hot: #ffcf6b;
+      --accent-cold: #76faff;
+      --danger: #ff7b89;
+      --shadow: rgba(68,255,218,.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 75% 8%, rgba(122,255,211,.12), transparent 20%),
+        radial-gradient(circle at 14% 80%, rgba(120,36,255,.15), transparent 30%),
+        linear-gradient(120deg, var(--bg), var(--bg-2));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 34px 70px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      letter-spacing: .16em;
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .logo-orb {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .logo-orb::after {
+      content: "";
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(120deg, var(--accent), var(--accent-cold));
+      border: 2px solid rgba(0,0,0,.45);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      color: var(--text-soft);
+      font-size: 12px;
+      letter-spacing: .14em;
+    }
+
+    .nav a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .nav .pill-button {
+      border: 1px solid var(--line);
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,.03);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(430px, 1fr) minmax(560px, 1fr);
+      gap: 44px;
+      align-items: center;
+      margin-top: 64px;
+    }
+
+    .lead {
+      padding-top: 14px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 36px;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(54px, 6.05vw, 106px);
+      line-height: .88;
+      margin-top: 24px;
+      letter-spacing: -.06em;
+    }
+
+    .lead p {
+      margin-top: 24px;
+      max-width: 640px;
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--text-soft);
+    }
+
+    .cta-row {
+      margin-top: 34px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn {
+      border: none;
+      color: #092018;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 13px 22px;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: .22em;
+      cursor: pointer;
+    }
+
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .stats {
+      display: flex;
+      gap: 36px;
+      margin-top: 54px;
+    }
+
+    .stat-number {
+      font-size: 29px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: .22em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 7px;
+    }
+
+    .video-panel {
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(41,54,58,.96), rgba(12,28,29,.95));
+      border: 1px solid var(--line);
+      box-shadow: inset 0 0 60px rgba(255,255,255,.06), 0 18px 90px var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sync-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-soft);
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(186,255,125,.8);
+      animation: pulse 2s infinite;
+    }
+
+    .live-tag {
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 10px;
+      letter-spacing: .22em;
+      color: var(--text-soft);
+    }
+
+    .video-screen {
+      position: relative;
+      min-height: 410px;
+      background:
+        radial-gradient(circle, rgba(240,255,205,.08), transparent 45%),
+        repeating-linear-gradient(120deg, transparent 0 2px, rgba(255,255,255,.04) 2px 3px),
+        url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520"%3E%3Cg fill="none"%3E%3Cg fill="%23a9fff1" fill-opacity=".13"%3E%3Ccircle cx="90" cy="90" r="2"/%3E%3Ccircle cx="530" cy="50" r="2"/%3E%3Ccircle cx="710" cy="170" r="2"/%3E%3Ccircle cx="360" cy="410" r="2"/%3E%3Ccircle cx="160" cy="350" r="2"/%3E%3C/g%3E%3Cg stroke="%238dffc5" stroke-opacity=".55"%3E%3Cpath d="M0 70C90 10 120 150 250 120S412 80 480 160S620 250 900 80"/%3E%3Cpath d="M80 430C150 350 160 230 310 310S420 390 560 270S700 170 900 350"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+      background-size: cover;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .scene-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 50%, transparent, rgba(0,0,0,.12)),
+        linear-gradient(135deg, transparent, rgba(255,255,255,.08));
+      pointer-events: none;
+    }
+
+    .moon {
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      top: 86px;
+      left: 58%;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255,255,255,.4);
+      background: radial-gradient(#f6ffd8, #d8e297 70%, #6a826c);
+      box-shadow: inset 0 0 34px rgba(255,255,255,.6), 0 0 25px rgba(186,255,125,.44);
+    }
+
+    .moon::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      inset: -6px;
+      border-radius: 50%;
+      border-top: 3px solid var(--accent-hot);
+      border-right: 3px solid var(--accent-cold);
+      filter: blur(.2px);
+    }
+
+    .moon .crater {
+      position: absolute;
+      width: 36px;
+      height: 20px;
+      border-radius: 50%;
+      left: 50%;
+      top: 44%;
+      transform: rotate(-10deg);
+      border: 1px solid rgba(0,0,0,.34);
+      background: rgba(40,48,30,.7);
+    }
+
+    .moon .crater:nth-child(2) {
+      width: 50px;
+      height: 24px;
+      left: 145px;
+      top: 95px;
+    }
+
+    .moon .crater:nth-child(3) {
+      width: 34px;
+      height: 28px;
+      left: 72px;
+      top: 154px;
+    }
+
+    .flyer {
+      position: absolute;
+      left: 54px;
+      top: 74px;
+      width: 210px;
+      height: 120px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.3);
+      transform: rotate(-24deg);
+      background: repeating-linear-gradient(90deg, transparent 0 4px, rgba(255,255,255,.19) 4px 5px);
+      filter: blur(.2px);
+    }
+
+    .flyer::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 8px;
+      left: 0;
+      top: 26px;
+      border-top: 1px solid var(--accent-hot);
+      border-bottom: 1px solid var(--accent-cold);
+    }
+
+    .scanline {
+      position: absolute;
+      width: 100%;
+      height: 3px;
+      top: 30%;
+      left: 0;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: .8;
+      animation: scan 3s ease-in-out infinite;
+    }
+
+    .video-caption {
+      position: absolute;
+      left: 24px;
+      bottom: 22px;
+      right: 24px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .caption-title {
+      font-size: 29px;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+      font-weight: 900;
+    }
+
+    .caption-sub {
+      font-size: 11px;
+      margin-top: 10px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: .22em;
+    }
+
+    .mini-cta {
+      font-size: 10px;
+      letter-spacing: .24em;
+      color: var(--text-soft);
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.18);
+    }
+
+    .timeline-panel {
+      padding: 14px 16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--panel-soft);
+    }
+
+    .timeline-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,.08);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-right: 18px;
+    }
+
+    .timeline-fill {
+      height: 100%;
+      width: 63%;
+      background: linear-gradient(90deg, var(--accent-hot), var(--accent));
+    }
+
+    .time-readout {
+      font-size: 10px;
+      color: var(--text-soft);
+      letter-spacing: .24em;
+      white-space: nowrap;
+    }
+
+    .grid-cards {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      border-radius: 20px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      padding: 20px;
+      min-height: 160px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card h3 {
+      font-size: 14px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+
+    .card p {
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 1.58;
+      margin-top: 14px;
+    }
+
+    .icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.04);
+    }
+
+    .icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .metric-output {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      color: var(--accent);
+      font-size: 10px;
+      letter-spacing: .26em;
+    }
+
+    @keyframes scan {
+      50% { transform: translateY(150px); }
+    }
+
+    @keyframes pulse {
+      70% { box-shadow: 0 0 0 12px transparent; }
+    }
+
+    @media (max-width: 940px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: clamp(44px, 12vw, 80px);
+      }
+
+      .grid-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-orb"></div>
+        <span>Synapse Labs</span>
+      </div>
+
+      <nav class="nav">
+        <a href="#">Studio</a>
+        <a href="#">Scenes</a>
+        <a href="#">Model</a>
+        <a href="#" class="pill-button">Generate</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="lead">
+        <div class="kicker">Field Render // 24.09.08</div>
+        <h1>Signal Drift</h1>
+        <p>
+          A generated short film about a moon-sized snack report chasing a rogue pizza signal through a sleeping city.
+        </p>
+
+        <div class="cta-row">
+          <button class="btn">Generate Cut</button>
+          <button class="btn secondary">Review Draft</button>
+        </div>
+
+        <div class="stats">
+          <div>
+            <div class="stat-number">06</div>
+            <div class="stat-label">Scene Blocks</div>
+          </div>
+          <div>
+            <div class="stat-number">8k</div>
+            <div class="stat-label">Frames</div>
+          </div>
+          <div>
+            <div class="stat-number">04s</div>
+            <div class="stat-label">Latency</div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="video-panel">
+        <section class="sync-header">
+          <div class="project-name">
+            <span class="status-dot"></span>
+            <span>Project / Drift-044</span>
+          </div>
+          <div class="live-tag">LIVE RENDER</div>
+        </section>
+
+        <section class="video-screen">
+          <div class="scene-overlay"></div>
+          <div class="flyer"></div>
+          <div class="scanline"></div>
+          <div class="moon">
+            <div class="crater"></div>
+            <div class="crater"></div>
+            <div class="crater"></div>
+          </div>
+          <div class="video-caption">
+            <div>
+              <div class="caption-title">Moon Snack Dispatch</div>
+              <div class="caption-sub">Orbit 09 / Pizza Signal Detected</div>
+            </div>
+            <div class="mini-cta">04:22 // HD</div>
+          </div>
+        </section>
+
+        <section class="timeline-panel">
+          <div class="timeline-bar">
+            <div class="timeline-fill"></div>
+          </div>
+          <div class="time-readout">00:34 / 01:12</div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="grid-cards">
+      <article class="card">
+        <div class="metric-output">SYNC 98%</div>
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 12h18M12 3l9 9-9 9" />
+          </svg>
+        </div>
+        <h3>Vector One</h3>
+        <p>
+          Orbital snack telemetry has crossed the feline acoustic threshold and entered the city feed.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="metric-output">AI: RUN</div>
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M5 12s4-7 7-7 7 7 7 7-4 7-7 7-7-7-7-7Z" />
+          </svg>
+        </div>
+        <h3>Scene Memory</h3>
+        <p>
+          The city dreams of cheese arches, forest satellites, and one impossible line of delivery traffic.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="metric-output">+12.6</div>
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M13 2 4 14h7l-1 8 10-20h-7l1-1Z" />
+          </svg>
+        </div>
+        <h3>Output Feed</h3>
+        <p>
+          Rendering layer locked: night tone, micron fade, and orbit-baked visual rhythm confirmed.
+        </p>
+      </article>
+    </section>
+  </div>
+</body>
+</html>
 
